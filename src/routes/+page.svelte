@@ -28,6 +28,10 @@
 		return currencyFormatter.format(value);
 	}
 
+	function formatSignedTotal(value: number) {
+		return `${value < 0 ? '+' : '-'}${formatCurrency(Math.abs(value))}`;
+	}
+
 	function beregnSluttverdiForEngangsbelop(
 		innskuttBelop: number,
 		arligAvkastningProsent: number,
@@ -118,17 +122,16 @@
 	let tidshorisont = $state(2);
 
 	// Renting
-	let manedsleie = $state(22000);
+	let manedsleie = $state(20000);
 	let forventetAvkastning = $state(10);
 
 	// Buying
-	let kjopesum = $state(5000000);
-	let egenkapital = $state(500000);
+	let kjopesum = $state(6000000);
+	let egenkapital = $state(600000);
 	let rente = $state(4.8);
 	let nedbetalingstid = $state(30);
 	let boligprisvekst = $state(6);
-	let felleskostnadPerManed = $state(2000);
-	let kommunaleAvgifterPerAr = $state(12000);
+	let felleskostnadPerManed = $state(5000);
 	let omkostningerKjop = $state(2.5);
 	let omkostningerSalg = $state(2.5);
 
@@ -137,6 +140,7 @@
 		byggNedbetalingstabell(lanebelop, rente, nedbetalingstid)
 	);
 	let manedligTerminbelop = $derived(nedbetalingstabell[0]?.terminbelop ?? 0);
+	let manedligBetaling = $derived(manedligTerminbelop + felleskostnadPerManed);
 	let tidshorisontIMnd = $derived(
 		Math.max(0, Math.min(nedbetalingstabell.length, Math.round(tidshorisont * 12)))
 	);
@@ -148,13 +152,11 @@
 	let boligverdiVedSalg = $derived(kjopesum * Math.pow(1 + boligprisvekst / 100, tidshorisont));
 	let gevinstAvVerdistigning = $derived(boligverdiVedSalg - kjopesum);
 	let totaleFelleskostnader = $derived(felleskostnadPerManed * tidshorisontIMnd);
-	let totaleKommunaleAvgifter = $derived(kommunaleAvgifterPerAr * tidshorisont);
 	let omkostnadVedKjop = $derived(kjopesum * (omkostningerKjop / 100));
 	let omkostnadVedSalg = $derived(boligverdiVedSalg * (omkostningerSalg / 100));
 	let totalkostnadVedEie = $derived(
 		renterEtterSkattefradrag +
 			totaleFelleskostnader +
-			totaleKommunaleAvgifter +
 			omkostnadVedKjop +
 			omkostnadVedSalg -
 			gevinstAvVerdistigning
@@ -166,7 +168,7 @@
 	let gevinstEtterSkattPaEgenkapital = $derived(
 		beregnEtterSkattSluttverdi(sluttverdiEgenkapitalinvestering, egenkapital) - egenkapital
 	);
-	let manedligSparingVedLeie = $derived(Math.max(0, manedligTerminbelop - manedsleie));
+	let manedligSparingVedLeie = $derived(Math.max(0, manedligBetaling - manedsleie));
 	let innskuttManedligSparing = $derived(manedligSparingVedLeie * tidshorisontIMnd);
 	let sluttverdiAvManedligSparing = $derived(
 		beregnSluttverdiForManedligSparing(
@@ -181,6 +183,13 @@
 	let totalkostnadVedLeie = $derived(
 		totalLeieIPerioden - gevinstEtterSkattPaEgenkapital - etterSkattVerdiAvManedligSparing
 	);
+
+	let leieErBilligst = $derived(totalkostnadVedLeie <= totalkostnadVedEie);
+	let besparelse = $derived(
+		leieErBilligst
+			? totalkostnadVedEie - totalkostnadVedLeie
+			: totalkostnadVedLeie - totalkostnadVedEie
+	);
 </script>
 
 <div class="min-h-screen bg-background">
@@ -188,13 +197,13 @@
 		<header class="mb-10">
 			<h1 class="text-3xl font-bold tracking-tight text-foreground">Boligkalkulator</h1>
 			<p class="mt-2 text-sm text-muted-foreground">
-				Sammenlign kostnadene ved å leie vs. kjøpe bolig over tid.
+				Sammenlign økonomien ved å leie vs. kjøpe bolig over tid.
 			</p>
 		</header>
 
-		<!-- Shared: Tidshorisont -->
+		<!-- Tidshorisont -->
 		<div class="mb-8">
-			<Card.Root>
+			<Card.Root class="h-full">
 				<Card.Header>
 					<Card.Title>Tidshorisont</Card.Title>
 					<Card.Description>Hvor lenge planlegger du å bo der?</Card.Description>
@@ -224,20 +233,22 @@
 			</Card.Root>
 		</div>
 
-		<!-- Two-column layout -->
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+		<!-- Input cards -->
+		<div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<!-- Leie -->
 			<Card.Root>
 				<Card.Header>
 					<div class="flex items-center gap-2">
 						<span
-							class="inline-flex items-center rounded bg-muted px-2 py-0.5 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+							class="inline-flex items-center rounded bg-sky-100 px-2 py-0.5 text-xs font-semibold tracking-widest text-sky-700 uppercase"
 						>
 							Leie
 						</span>
 					</div>
 					<Card.Title class="mt-1">Leiealternativet</Card.Title>
-					<Card.Description>Hva koster det å leie, og hva gjør du med resten?</Card.Description>
+					<Card.Description
+						>Hva koster det å leie, og hva skjer med resten av pengene?</Card.Description
+					>
 				</Card.Header>
 				<Card.Content class="space-y-5">
 					<div>
@@ -288,7 +299,7 @@
 				<Card.Header>
 					<div class="flex items-center gap-2">
 						<span
-							class="inline-flex items-center rounded bg-foreground px-2 py-0.5 text-xs font-semibold tracking-widest text-background uppercase"
+							class="inline-flex items-center rounded bg-violet-100 px-2 py-0.5 text-xs font-semibold tracking-widest text-violet-700 uppercase"
 						>
 							Kjøp
 						</span>
@@ -398,7 +409,7 @@
 					</div>
 
 					<div>
-						<Label for="felleskostnad" class="mb-1.5 block text-sm">Felleskostnad per mnd</Label>
+						<Label for="felleskostnad" class="mb-1.5 block text-sm">Felleskostnader</Label>
 						<div class="relative">
 							<Input
 								id="felleskostnad"
@@ -413,27 +424,6 @@
 								>kr/mnd</span
 							>
 						</div>
-					</div>
-
-					<div>
-						<Label for="kommunale-avgifter" class="mb-1.5 block text-sm"
-							>Kommunale avgifter per år</Label
-						>
-						<div class="relative">
-							<Input
-								id="kommunale-avgifter"
-								type="number"
-								min="0"
-								placeholder="12000"
-								class="pr-10"
-								bind:value={kommunaleAvgifterPerAr}
-							/>
-							<span
-								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-								>kr</span
-							>
-						</div>
-						<p class="mt-1.5 text-xs text-muted-foreground">Per år</p>
 					</div>
 
 					<div class="grid grid-cols-2 gap-4">
@@ -481,117 +471,212 @@
 			</Card.Root>
 		</div>
 
-		<div class="mt-8 grid grid-cols-1 gap-6 xl:grid-cols-2">
+		<!-- Results -->
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+			<!-- Kostnader ved leie -->
 			<Card.Root>
 				<Card.Header>
-					<Card.Title>Kostnader ved leie</Card.Title>
-					<Card.Description>
-						Leieutgifter minus investering av egenkapital og månedlig differanse mot terminbeløpet.
-					</Card.Description>
+					<div class="flex items-center gap-2">
+						<span
+							class="inline-flex items-center rounded bg-sky-100 px-2 py-0.5 text-xs font-semibold tracking-widest text-sky-700 uppercase"
+						>
+							Leie
+						</span>
+					</div>
+					<Card.Title class="mt-1">Kostnader ved leie</Card.Title>
 				</Card.Header>
-				<Card.Content class="space-y-4 text-sm">
-					<div class="grid gap-3 sm:grid-cols-2">
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Leie i perioden</p>
-							<p class="mt-1 font-medium text-foreground">{formatCurrency(totalLeieIPerioden)}</p>
+				<Card.Content class="flex flex-1 flex-col">
+					<div class="flex h-full flex-col gap-1.5">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-border bg-muted/30 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Månedsleie</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">
+								{formatCurrency(manedsleie)}<span class="text-xs font-normal text-muted-foreground"
+									>/mnd</span
+								>
+							</p>
 						</div>
 
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Avkastning på investert egenkapital</p>
-							<p class="mt-1 font-medium text-foreground">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-border bg-muted/30 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Månedlig sparebeløp</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">
+								{formatCurrency(manedligSparingVedLeie)}<span
+									class="text-xs font-normal text-muted-foreground">/mnd</span
+								>
+							</p>
+						</div>
+
+						<div
+							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Total leiekostnad</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
+								{formatCurrency(totalLeieIPerioden)}
+							</p>
+						</div>
+
+						<div
+							class="flex items-center justify-between border-l-2 border-l-emerald-400 bg-emerald-50/60 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Avkastning egenkapital (etter skatt)</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-emerald-600 tabular-nums">
 								{formatCurrency(gevinstEtterSkattPaEgenkapital)}
 							</p>
 						</div>
 
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Månedlig spart beløp</p>
-							<p class="mt-1 font-medium text-foreground">
-								{formatCurrency(manedligSparingVedLeie)}
-							</p>
-						</div>
-
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Oppspart verdi av månedsdifferanse</p>
-							<p class="mt-1 font-medium text-foreground">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-emerald-400 bg-emerald-50/60 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Oppsparte penger (etter skatt)</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-emerald-600 tabular-nums">
 								{formatCurrency(etterSkattVerdiAvManedligSparing)}
 							</p>
 						</div>
 
-						<div class="rounded-lg border bg-muted/40 p-3 sm:col-span-2">
-							<p class="text-xs text-muted-foreground">Totalkostnad ved leie</p>
-							<p class="mt-1 text-lg font-semibold text-foreground">
-								{formatCurrency(totalkostnadVedLeie)}
-							</p>
+						<div class="mt-auto border-t pt-3">
+							<div class="flex items-center justify-between px-1">
+								<p class="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+									{totalkostnadVedLeie < 0 ? 'Totalgevinst ved leie' : 'Totalkostnad ved leie'}
+								</p>
+								<p
+									class="text-xl font-bold tabular-nums {totalkostnadVedLeie < 0
+										? 'text-emerald-600'
+										: 'text-rose-600'}"
+								>
+									{formatSignedTotal(totalkostnadVedLeie)}
+								</p>
+							</div>
 						</div>
 					</div>
 				</Card.Content>
 			</Card.Root>
 
-			<Card.Root>
+			<!-- Kostnader ved eie -->
+			<Card.Root class="h-full">
 				<Card.Header>
-					<Card.Title>Kostnader ved eie</Card.Title>
-					<Card.Description>
-						Annuitetslån med månedlige betalinger basert på kjøpesum minus egenkapital.
-					</Card.Description>
+					<div class="flex items-center gap-2">
+						<span
+							class="inline-flex items-center rounded bg-violet-100 px-2 py-0.5 text-xs font-semibold tracking-widest text-violet-700 uppercase"
+						>
+							Kjøp
+						</span>
+					</div>
+					<Card.Title class="mt-1">Kostnader ved eie</Card.Title>
 				</Card.Header>
-				<Card.Content class="space-y-4 text-sm">
-					<div class="grid gap-3 sm:grid-cols-2">
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Månedlig terminbeløp</p>
-							<p class="mt-1 font-medium text-foreground">{formatCurrency(manedligTerminbelop)}</p>
+				<Card.Content class="flex flex-1 flex-col">
+					<div class="flex h-full flex-col gap-1.5">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-border bg-muted/30 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Månedlig terminbeløp på lån</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">
+								{formatCurrency(manedligTerminbelop)}<span
+									class="text-xs font-normal text-muted-foreground">/mnd</span
+								>
+							</p>
 						</div>
 
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Renter etter skattefradrag</p>
-							<p class="mt-1 font-medium text-foreground">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-border bg-muted/30 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Total månedlig betaling</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-muted-foreground tabular-nums">
+								{formatCurrency(manedligBetaling)}<span
+									class="text-xs font-normal text-muted-foreground">/mnd</span
+								>
+							</p>
+						</div>
+
+						<div
+							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Total renteutgift etter skattefradrag</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
 								{formatCurrency(renterEtterSkattefradrag)}
 							</p>
 						</div>
 
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Gevinst av verdistigning</p>
-							<p class="mt-1 font-medium text-foreground">
-								{formatCurrency(gevinstAvVerdistigning)}
-							</p>
-						</div>
-
-						<div class="rounded-lg border p-3">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
+						>
 							<p class="text-xs text-muted-foreground">Felleskostnader i perioden</p>
-							<p class="mt-1 font-medium text-foreground">
+							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
 								{formatCurrency(totaleFelleskostnader)}
 							</p>
 						</div>
 
-						<div class="rounded-lg border p-3">
-							<p class="text-xs text-muted-foreground">Kommunale avgifter i perioden</p>
-							<p class="mt-1 font-medium text-foreground">
-								{formatCurrency(totaleKommunaleAvgifter)}
-							</p>
-						</div>
-
-						<div class="rounded-lg border p-3">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
+						>
 							<p class="text-xs text-muted-foreground">Omkostninger ved kjøp</p>
-							<p class="mt-1 font-medium text-foreground">
+							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
 								{formatCurrency(omkostnadVedKjop)}
 							</p>
 						</div>
 
-						<div class="rounded-lg border p-3">
+						<div
+							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
+						>
 							<p class="text-xs text-muted-foreground">Omkostninger ved salg</p>
-							<p class="mt-1 font-medium text-foreground">
+							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
 								{formatCurrency(omkostnadVedSalg)}
 							</p>
 						</div>
 
-						<div class="rounded-lg border bg-muted/40 p-3 sm:col-span-2">
-							<p class="text-xs text-muted-foreground">Totalkostnad ved eie</p>
-							<p class="mt-1 text-lg font-semibold text-foreground">
-								{formatCurrency(totalkostnadVedEie)}
+						<div
+							class="flex items-center justify-between border-l-2 border-l-emerald-400 bg-emerald-50/60 py-2.5 pr-3 pl-3"
+						>
+							<p class="text-xs text-muted-foreground">Gevinst fra boligprisstigning</p>
+							<p class="ml-4 shrink-0 text-sm font-semibold text-emerald-600 tabular-nums">
+								{formatCurrency(gevinstAvVerdistigning)}
 							</p>
+						</div>
+
+						<div class="mt-auto border-t pt-3">
+							<div class="flex items-center justify-between px-1">
+								<p class="text-xs font-medium tracking-wider text-muted-foreground uppercase">
+									{totalkostnadVedEie < 0 ? 'Totalgevinst ved eie' : 'Totalkostnad ved eie'}
+								</p>
+								<p
+									class="text-xl font-bold tabular-nums {totalkostnadVedEie < 0
+										? 'text-emerald-600'
+										: 'text-rose-600'}"
+								>
+									{formatSignedTotal(totalkostnadVedEie)}
+								</p>
+							</div>
 						</div>
 					</div>
 				</Card.Content>
 			</Card.Root>
+		</div>
+
+		<!-- Comparison summary -->
+		<div class="mt-6">
+			{#if leieErBilligst}
+				<div class="rounded-lg border-2 border-sky-200 bg-sky-50/70 px-6 py-5 text-center">
+					<p class="mb-1 text-xs font-medium tracking-widest text-sky-500 uppercase">Konklusjon</p>
+					<p class="text-lg font-bold text-sky-900">Leie er billigst over {tidshorisont} år</p>
+					<p class="mt-1 text-sm text-sky-700">
+						Du sparer <span class="font-semibold">{formatCurrency(besparelse)}</span> sammenlignet med
+						å kjøpe
+					</p>
+				</div>
+			{:else}
+				<div class="rounded-lg border-2 border-violet-200 bg-violet-50/70 px-6 py-5 text-center">
+					<p class="mb-1 text-xs font-medium tracking-widest text-violet-500 uppercase">
+						Konklusjon
+					</p>
+					<p class="text-lg font-bold text-violet-900">Kjøp er billigst over {tidshorisont} år</p>
+					<p class="mt-1 text-sm text-violet-700">
+						Du sparer <span class="font-semibold">{formatCurrency(besparelse)}</span> sammenlignet med
+						å leie
+					</p>
+				</div>
+			{/if}
 		</div>
 	</div>
 </div>
