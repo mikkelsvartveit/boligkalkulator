@@ -119,7 +119,7 @@
 	}
 
 	// Shared
-	let tidshorisont = $state(2);
+	let tidshorisont = $state(3);
 
 	// Renting
 	let manedsleie = $state(20000);
