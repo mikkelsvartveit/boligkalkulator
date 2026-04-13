@@ -201,38 +201,6 @@
 			</p>
 		</header>
 
-		<!-- Tidshorisont -->
-		<div class="mb-8">
-			<Card.Root class="h-full">
-				<Card.Header>
-					<Card.Title>Tidshorisont</Card.Title>
-					<Card.Description>Hvor lenge planlegger du å bo der?</Card.Description>
-				</Card.Header>
-				<Card.Content>
-					<div class="flex items-center gap-3">
-						<div class="w-48">
-							<Label for="tidshorisont" class="mb-1.5 block text-sm">Antall år</Label>
-							<div class="relative">
-								<Input
-									id="tidshorisont"
-									type="number"
-									min="1"
-									max="50"
-									placeholder="10"
-									class="pr-12"
-									bind:value={tidshorisont}
-								/>
-								<span
-									class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-									>år</span
-								>
-							</div>
-						</div>
-					</div>
-				</Card.Content>
-			</Card.Root>
-		</div>
-
 		<!-- Input cards -->
 		<div class="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
 			<!-- Leie -->
@@ -308,81 +276,83 @@
 					<Card.Description>Hva koster det å eie boligen?</Card.Description>
 				</Card.Header>
 				<Card.Content class="space-y-5">
-					<div>
-						<Label for="kjopesum" class="mb-1.5 block text-sm">Kjøpesum</Label>
-						<div class="relative">
-							<Input
-								id="kjopesum"
-								type="number"
-								min="0"
-								placeholder="5000000"
-								class="pr-6"
-								bind:value={kjopesum}
-							/>
-							<span
-								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-								>kr</span
-							>
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<Label for="kjopesum" class="mb-1.5 block text-sm">Kjøpesum</Label>
+							<div class="relative">
+								<Input
+									id="kjopesum"
+									type="number"
+									min="0"
+									placeholder="5000000"
+									class="pr-6"
+									bind:value={kjopesum}
+								/>
+								<span
+									class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
+									>kr</span
+								>
+							</div>
+						</div>
+
+						<div>
+							<Label for="egenkapital" class="mb-1.5 block text-sm">Egenkapital</Label>
+							<div class="relative">
+								<Input
+									id="egenkapital"
+									type="number"
+									min="0"
+									placeholder="1000000"
+									class="pr-6"
+									bind:value={egenkapital}
+								/>
+								<span
+									class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
+									>kr</span
+								>
+							</div>
 						</div>
 					</div>
 
-					<div>
-						<Label for="egenkapital" class="mb-1.5 block text-sm">Egenkapital</Label>
-						<div class="relative">
-							<Input
-								id="egenkapital"
-								type="number"
-								min="0"
-								placeholder="1000000"
-								class="pr-6"
-								bind:value={egenkapital}
-							/>
-							<span
-								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-								>kr</span
-							>
+					<div class="grid grid-cols-2 gap-4">
+						<div>
+							<Label for="rente" class="mb-1.5 block text-sm">Rente på boliglån</Label>
+							<div class="relative">
+								<Input
+									id="rente"
+									type="number"
+									min="0"
+									max="100"
+									step="0.01"
+									placeholder="4.8"
+									class="pr-10"
+									bind:value={rente}
+								/>
+								<span
+									class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
+									>%</span
+								>
+							</div>
+							<p class="mt-1.5 text-xs text-muted-foreground">Nominell rente per år</p>
 						</div>
-					</div>
 
-					<div>
-						<Label for="rente" class="mb-1.5 block text-sm">Rente på boliglån</Label>
-						<div class="relative">
-							<Input
-								id="rente"
-								type="number"
-								min="0"
-								max="100"
-								step="0.01"
-								placeholder="4.8"
-								class="pr-10"
-								bind:value={rente}
-							/>
-							<span
-								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-								>%</span
-							>
-						</div>
-						<p class="mt-1.5 text-xs text-muted-foreground">Nominell rente per år</p>
-					</div>
-
-					<div>
-						<Label for="nedbetalingstid" class="mb-1.5 block text-sm"
-							>Nedbetalingstid for boliglån</Label
-						>
-						<div class="relative">
-							<Input
-								id="nedbetalingstid"
-								type="number"
-								min="1"
-								max="50"
-								placeholder="30"
-								class="pr-12"
-								bind:value={nedbetalingstid}
-							/>
-							<span
-								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-								>år</span
-							>
+						<div>
+							<Label for="nedbetalingstid" class="mb-1.5 block text-sm">Nedbetalingstid</Label>
+							<div class="relative">
+								<Input
+									id="nedbetalingstid"
+									type="number"
+									min="1"
+									max="50"
+									placeholder="30"
+									class="pr-12"
+									bind:value={nedbetalingstid}
+								/>
+								<span
+									class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
+									>år</span
+								>
+							</div>
 						</div>
 					</div>
 
@@ -465,6 +435,36 @@
 									>%</span
 								>
 							</div>
+						</div>
+					</div>
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<!-- Tidshorisont -->
+		<div class="mb-8">
+			<Card.Root class="h-full">
+				<Card.Header>
+					<Card.Title>Tidshorisont</Card.Title>
+					<Card.Description>Hvor lenge planlegger du å bo der?</Card.Description>
+				</Card.Header>
+				<Card.Content>
+					<div class="flex items-center gap-4">
+						<div class="relative flex-1 pt-6">
+							<div
+								class="pointer-events-none absolute top-0 -translate-x-1/2 rounded bg-foreground px-1.5 py-0.5 text-xs font-semibold text-background"
+								style="left: calc({(tidshorisont - 1) / 19} * (100% - 16px) + 8px)"
+							>
+								{tidshorisont} år
+							</div>
+							<input
+								type="range"
+								min="1"
+								max="20"
+								step="1"
+								bind:value={tidshorisont}
+								class="w-full cursor-pointer accent-foreground"
+							/>
 						</div>
 					</div>
 				</Card.Content>
@@ -593,7 +593,7 @@
 						<div
 							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
 						>
-							<p class="text-xs text-muted-foreground">Total renteutgift etter skattefradrag</p>
+							<p class="text-xs text-muted-foreground">Totale renteutgifter etter skattefradrag</p>
 							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
 								{formatCurrency(renterEtterSkattefradrag)}
 							</p>
@@ -602,7 +602,7 @@
 						<div
 							class="flex items-center justify-between border-l-2 border-l-rose-400 bg-rose-50/60 py-2.5 pr-3 pl-3"
 						>
-							<p class="text-xs text-muted-foreground">Felleskostnader i perioden</p>
+							<p class="text-xs text-muted-foreground">Totale felleskostnader</p>
 							<p class="ml-4 shrink-0 text-sm font-semibold text-rose-600 tabular-nums">
 								{formatCurrency(totaleFelleskostnader)}
 							</p>
