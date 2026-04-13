@@ -357,28 +357,6 @@
 					</div>
 
 					<div>
-						<Label for="boligprisvekst" class="mb-1.5 block text-sm">Forventet boligprisvekst</Label
-						>
-						<div class="relative">
-							<Input
-								id="boligprisvekst"
-								type="number"
-								min="0"
-								max="100"
-								step="0.1"
-								placeholder="6"
-								class="pr-10"
-								bind:value={boligprisvekst}
-							/>
-							<span
-								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
-								>%</span
-							>
-						</div>
-						<p class="mt-1.5 text-xs text-muted-foreground">Per år</p>
-					</div>
-
-					<div>
 						<Label for="felleskostnad" class="mb-1.5 block text-sm">Felleskostnader</Label>
 						<div class="relative">
 							<Input
@@ -436,6 +414,28 @@
 								>
 							</div>
 						</div>
+					</div>
+
+					<div>
+						<Label for="boligprisvekst" class="mb-1.5 block text-sm">Forventet boligprisvekst</Label
+						>
+						<div class="relative">
+							<Input
+								id="boligprisvekst"
+								type="number"
+								min="0"
+								max="100"
+								step="0.1"
+								placeholder="6"
+								class="pr-10"
+								bind:value={boligprisvekst}
+							/>
+							<span
+								class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-sm text-muted-foreground"
+								>%</span
+							>
+						</div>
+						<p class="mt-1.5 text-xs text-muted-foreground">Per år</p>
 					</div>
 				</Card.Content>
 			</Card.Root>
